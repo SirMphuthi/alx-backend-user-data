@@ -19,6 +19,14 @@ def unauthorized(error):
     """
     return jsonify({"error": "Unauthorized"}), 401
 
+# --- NEW: Handler for 403 Forbidden errors ---
+@app.errorhandler(403)
+def forbidden(error):
+    """ Handler for 403 Forbidden errors
+    Returns a JSON response with status code 403.
+    """
+    return jsonify({"error": "Forbidden"}), 403
+
 @app.errorhandler(404)
 def not_found(error):
     """ Handler for 404 Not Found errors
@@ -29,7 +37,7 @@ def not_found(error):
 # --- 4. Main execution block for running the Flask development server ---
 if __name__ == "__main__":
     import os
-    
+
     API_HOST = os.getenv('API_HOST', '0.0.0.0')
     API_PORT = int(os.getenv('API_PORT', 5000))
 
