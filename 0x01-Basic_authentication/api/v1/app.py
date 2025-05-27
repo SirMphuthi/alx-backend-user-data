@@ -1,28 +1,36 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
-Route module for the API
+Main Flask application
 """
-from os import getenv
+from flask import Flask, jsonify
 from api.v1.views import app_views
-from flask import Flask, jsonify, abort, request
-from flask_cors import (CORS, cross_origin)
-import os
 
-
+# --- 1. Initialize the Flask app instance ---
 app = Flask(__name__)
-app.register_blueprint(app_views)
-CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 
+# --- 2. Register blueprints (like app_views) with the app ---
+app.register_blueprint(app_views)
+
+# --- 3. Define error handlers for the app ---
+@app.errorhandler(401)
+def unauthorized(error):
+    """ Handler for 401 Unauthorized errors
+    Returns a JSON response with status code 401.
+    """
+    return jsonify({"error": "Unauthorized"}), 401
 
 @app.errorhandler(404)
-def not_found(error) -> str:
-    """ Not found handler
+def not_found(error):
+    """ Handler for 404 Not Found errors
+    Returns a JSON response with status code 404.
     """
     return jsonify({"error": "Not found"}), 404
 
-
+# --- 4. Main execution block for running the Flask development server ---
 if __name__ == "__main__":
-    host = getenv("API_HOST", "0.0.0.0")
-    port = getenv("API_PORT", "5000")
-    app.run(host=host, port=port)
+    import os
+    
+    API_HOST = os.getenv('API_HOST', '0.0.0.0')
+    API_PORT = int(os.getenv('API_PORT', 5000))
 
+    app.run(host=API_HOST, port=API_PORT, debug=True)
