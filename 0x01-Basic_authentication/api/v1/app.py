@@ -2,9 +2,9 @@
 """
 Main Flask application
 """
-from flask import Flask, jsonify, abort, request  # Required Flask imports
-from api.v1.views import app_views  # Blueprint for API views
-import os  # Required for environment variables
+from flask import Flask, jsonify, abort, request  # Standard ASCII spaces
+from api.v1.views import app_views  # Standard ASCII spaces
+import os  # Standard ASCII spaces
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
@@ -40,7 +40,7 @@ def forbidden(error):
     Handler for 403 Forbidden errors.
     Returns a JSON response with status code 403.
     """
-    return jsonify({"error": "Forbidden"}), 403
+    return jsonify({"error": "Forbidden"}), 403  # Corrected indentation
 
 
 @app.errorhandler(404)
@@ -61,9 +61,9 @@ def handle_before_request():
     for authentication and authorization checks.
     """
     if auth is None:
-        return
+        return  # Corrected indentation
 
-    excluded_paths = [
+    excluded_paths = [  # Corrected indentation
         '/api/v1/status/',
         '/api/v1/unauthorized/',
         '/api/v1/forbidden/'

@@ -31,14 +31,17 @@ class Auth:
 
         for excluded_path_candidate in excluded_paths:
             # Defensive check for non-string or None elements
-            if not isinstance(excluded_path_candidate, str) or excluded_path_candidate is None:
+            if not isinstance(excluded_path_candidate, str) or \
+                    excluded_path_candidate is None:
                 continue
 
             # Normalize the excluded path candidate for consistent comparison
             if excluded_path_candidate == "/":
                 normalized_excluded_path = "/"
             else:
-                normalized_excluded_path = excluded_path_candidate.rstrip('/') + '/'
+                # THIS LINE IS NOW BROKEN INTO TWO FOR PEP8 COMPLIANCE
+                normalized_excluded_path = \
+                    excluded_path_candidate.rstrip('/') + '/'
 
             if normalized_path == normalized_excluded_path:
                 return False
@@ -47,18 +50,17 @@ class Auth:
 
     def authorization_header(self, request=None) -> str:
         """
-        Retrieves the Authorization header from the request.
+        Retrieves the Authorization header.
         """
         if request is None:
             return None
-            
-        # Flask's request.headers is a dictionary-like object
-        # Use .get() to safely check for header existence
+
+        # Check for header existence.
         return request.headers.get('Authorization', None)
 
     def current_user(self, request=None) -> TypeVar('User'):
         """
-        Retrieves the current user from the request.
-        (Always returns None for now, to simulate forbidden access if header exists)
+        Retrieves the current user.
+        Returns None for now.
         """
         return None
