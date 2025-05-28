@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ Module of Index views
 """
-from flask import jsonify, abort
+from flask import jsonify, abort # Ensure 'abort' is imported here
 from api.v1.views import app_views
 
 
@@ -22,20 +22,21 @@ def stats() -> str:
     """
     from models.user import User
     stats = {}
-    # Removed 'hasattr' check - checker likely expects User.count() to exist
-    stats['users'] = User.count()
+    stats['users'] = User.count() # Assuming User.count() is correctly implemented
     return jsonify(stats)
 
 
+# --- New endpoint for the unauthorized error handler ---
 @app_views.route('/unauthorized', methods=['GET'], strict_slashes=False)
 def trigger_unauthorized():
     """ GET /api/v1/unauthorized
     Return:
       - Triggers a 401 Unauthorized error
     """
-    abort(401)
+    abort(401) # This will raise the 401 error, handled by app.py
 
 
+# --- Endpoint for the forbidden error handler (from a later task, keep for continuity) ---
 @app_views.route('/forbidden', methods=['GET'], strict_slashes=False)
 def trigger_forbidden():
     """ GET /api/v1/forbidden
