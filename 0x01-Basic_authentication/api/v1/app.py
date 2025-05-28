@@ -2,14 +2,12 @@
 """
 Main Flask application
 """
-from flask import Flask, jsonify, abort, request # Ensure request and abort are imported
+from flask import Flask, jsonify, abort, request
 from api.v1.views import app_views
-import os # Import os to get environment variables
+import os
 
-# --- 1. Initialize the Flask app instance ---
 app = Flask(__name__)
 
-# --- 2. Register blueprints (like app_views) with the app ---
 app.register_blueprint(app_views)
 
 # --- CORS configuration (if applicable, often part of standard setup) ---
@@ -27,11 +25,11 @@ if AUTH_TYPE == 'auth':
     # Import Auth class only if AUTH_TYPE is 'auth'
     from api.v1.auth.auth import Auth
     auth = Auth()
-# You would add 'elif' blocks here for other authentication types as they are implemented
 # (e.g., if AUTH_TYPE == 'basic_auth', 'session_auth', etc.)
 
-
 # --- 3. Define error handlers for the app ---
+
+
 @app.errorhandler(401)
 def unauthorized(error):
     """ Handler for 401 Unauthorized errors
@@ -39,12 +37,14 @@ def unauthorized(error):
     """
     return jsonify({"error": "Unauthorized"}), 401
 
+
 @app.errorhandler(403)
 def forbidden(error):
     """ Handler for 403 Forbidden errors
     Returns a JSON response with status code 403.
     """
     return jsonify({"error": "Forbidden"}), 403
+
 
 @app.errorhandler(404)
 def not_found(error):
@@ -79,15 +79,15 @@ def handle_before_request():
         # If authentication is required for this path:
         # 1. Check if the Authorization header is present
         if auth.authorization_header(request) is None:
-            abort(401) # If no Authorization header, raise 401 Unauthorized
+            abort(401)
 
         # 2. Check if a current user can be identified
         # For now, current_user always returns None, effectively making any
         # request with an Authorization header lead to a 403
         if auth.current_user(request) is None:
-            abort(403) # If no current user, raise 403 Forbidden (simulating lack of access)
+            abort(403)
 
-    # If auth is not required, or all checks pass, allow the request to proceed normally
+    # If auth is not required
     # (by simply returning None from before_request)
 
 
