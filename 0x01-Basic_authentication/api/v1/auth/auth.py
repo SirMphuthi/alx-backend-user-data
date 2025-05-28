@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
-""" Module for Auth class
+"""
+Auth class to manage API authentication.
 """
 from flask import request
 from typing import List, TypeVar
 
 
 class Auth:
-    """ Auth class to manage API authentication
+    """
+    Auth class definition.
     """
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ Checks if a path requires authentication.
+        """
+        Checks if a given path requires authentication.
         Returns True if the path is not in the list of excluded_paths.
-
-        Args:
-            path (str): The path to check.
-            excluded_paths (List[str]): List of paths that don't require auth.
-                                        Assumed to end with a '/'.
-        Returns:
-            bool: True if authentication is required, False otherwise.
         """
         if path is None:
             return True
@@ -26,31 +22,43 @@ class Auth:
         if excluded_paths is None or not excluded_paths:
             return True
 
-        # Ensure path ends with a slash for consistent comparison
-        if not path.endswith('/'):
-            path += '/'
+        # Normalize path: ensure it has exactly one trailing slash
+        if path == "/":
+            normalized_path = "/"
+        else:
+            # Strip all trailing slashes, then add one back
+            normalized_path = path.rstrip('/') + '/'
 
-        for excluded_path in excluded_paths:
-            # Assuming excluded_path always ends with a '/'
-            if path == excluded_path:
+        for excluded_path_candidate in excluded_paths:
+            # Defensive check for non-string or None elements
+            if not isinstance(excluded_path_candidate, str) or excluded_path_candidate is None:
+                continue
+
+            # Normalize the excluded path candidate for consistent comparison
+            if excluded_path_candidate == "/":
+                normalized_excluded_path = "/"
+            else:
+                normalized_excluded_path = excluded_path_candidate.rstrip('/') + '/'
+
+            if normalized_path == normalized_excluded_path:
                 return False
 
         return True
 
     def authorization_header(self, request=None) -> str:
-        """ Retrieves the Authorization header from the request
-        Args:
-            request: The Flask request object.
-        Returns:
-            str: Always None for now.
         """
-        return None
+        Retrieves the Authorization header from the request.
+        """
+        if request is None:
+            return None
+            
+        # Flask's request.headers is a dictionary-like object
+        # Use .get() to safely check for header existence
+        return request.headers.get('Authorization', None)
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """ Retrieves the current user from the request
-        Args:
-            request: The Flask request object.
-        Returns:
-            TypeVar('User'): Always None for now.
+        """
+        Retrieves the current user from the request.
+        (Always returns None for now, to simulate forbidden access if header exists)
         """
         return None

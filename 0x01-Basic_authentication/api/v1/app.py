@@ -2,14 +2,34 @@
 """
 Main Flask application
 """
-from flask import Flask, jsonify
+from flask import Flask, jsonify, abort, request # Ensure request and abort are imported
 from api.v1.views import app_views
+import os # Import os to get environment variables
 
 # --- 1. Initialize the Flask app instance ---
 app = Flask(__name__)
 
 # --- 2. Register blueprints (like app_views) with the app ---
 app.register_blueprint(app_views)
+
+# --- CORS configuration (if applicable, often part of standard setup) ---
+# Example: If your project uses Flask-CORS, you might have something like this:
+# from flask_cors import CORS
+# CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
+
+
+# --- Authentication instance initialization ---
+auth = None
+# Get AUTH_TYPE environment variable to determine which auth method to use
+AUTH_TYPE = os.getenv('AUTH_TYPE')
+
+if AUTH_TYPE == 'auth':
+    # Import Auth class only if AUTH_TYPE is 'auth'
+    from api.v1.auth.auth import Auth
+    auth = Auth()
+# You would add 'elif' blocks here for other authentication types as they are implemented
+# (e.g., if AUTH_TYPE == 'basic_auth', 'session_auth', etc.)
+
 
 # --- 3. Define error handlers for the app ---
 @app.errorhandler(401)
@@ -19,7 +39,6 @@ def unauthorized(error):
     """
     return jsonify({"error": "Unauthorized"}), 401
 
-# --- NEW: Handler for 403 Forbidden errors ---
 @app.errorhandler(403)
 def forbidden(error):
     """ Handler for 403 Forbidden errors
@@ -34,10 +53,46 @@ def not_found(error):
     """
     return jsonify({"error": "Not found"}), 404
 
-# --- 4. Main execution block for running the Flask development server ---
-if __name__ == "__main__":
-    import os
 
+# --- 4. Implement before_request handler ---
+@app.before_request
+def handle_before_request():
+    """ Handles operations before each request is processed.
+    This is where authentication and authorization checks occur.
+    """
+    # If no auth instance is configured, skip authentication checks
+    # (e.g., if AUTH_TYPE is not 'auth' or not set)
+    if auth is None:
+        return
+
+    # Define paths that explicitly do NOT require authentication
+    # These are provided in the problem description.
+    excluded_paths = [
+        '/api/v1/status/',
+        '/api/v1/unauthorized/',
+        '/api/v1/forbidden/'
+    ]
+
+    # Check if the current request path requires authentication
+    # This uses the auth.require_auth method for consistent slash handling
+    if auth.require_auth(request.path, excluded_paths):
+        # If authentication is required for this path:
+        # 1. Check if the Authorization header is present
+        if auth.authorization_header(request) is None:
+            abort(401) # If no Authorization header, raise 401 Unauthorized
+
+        # 2. Check if a current user can be identified
+        # For now, current_user always returns None, effectively making any
+        # request with an Authorization header lead to a 403
+        if auth.current_user(request) is None:
+            abort(403) # If no current user, raise 403 Forbidden (simulating lack of access)
+
+    # If auth is not required, or all checks pass, allow the request to proceed normally
+    # (by simply returning None from before_request)
+
+
+# --- 5. Main execution block for running the Flask development server ---
+if __name__ == "__main__":
     API_HOST = os.getenv('API_HOST', '0.0.0.0')
     API_PORT = int(os.getenv('API_PORT', 5000))
 
