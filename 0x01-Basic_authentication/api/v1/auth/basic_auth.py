@@ -2,8 +2,10 @@
 """
 BasicAuth class for Basic Authentication
 """
-import base64
+import base64  # Import for Base64 encoding/decoding
+from typing import TypeVar
 from api.v1.auth.auth import Auth
+from models.user import User  # User model for database interaction
 
 
 class BasicAuth(Auth):
@@ -94,6 +96,42 @@ class BasicAuth(Auth):
             return None, None
 
         # Split the string at the first occurrence of ':'
-        # (Assuming only one ':' as per requirement)
-        email, password = decoded_base64_authorization_header.split(':', 1)
+        email, password = (
+            decoded_base64_authorization_header.split(':', 1)
+        )
         return email, password
+
+    def user_object_from_credentials(
+        self, user_email: str, user_pwd: str
+    ) -> TypeVar('User'):
+        """
+        Retrieves a User instance based on their email and password.
+
+        Args:
+            user_email (str): The email of the user.
+            user_pwd (str): The clear-text password of the user.
+
+        Returns:
+            User: The User instance if found and credentials are valid,
+                  otherwise None.
+        """
+        if user_email is None or not isinstance(user_email, str):
+            return None
+        if user_pwd is None or not isinstance(user_pwd, str):
+            return None
+
+        # Search for users by email.User.search returns a list of User objects.
+        users = User.search(attributes={'email': user_email})
+
+        # If no user is found with that email
+        if not users:
+            return None
+
+        # As per the assumption, email is unique, so take the first user found
+        user = users[0]
+
+        # Check if the provided clear-text password is valid for this user
+        if user.is_valid_password(user_pwd):
+            return user
+        else:
+            return None
