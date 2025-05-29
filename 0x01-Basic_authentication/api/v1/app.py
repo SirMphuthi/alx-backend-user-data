@@ -2,9 +2,9 @@
 """
 Main Flask application
 """
-from flask import Flask, jsonify, abort, request  # Standard ASCII spaces
-from api.v1.views import app_views  # Standard ASCII spaces
-import os  # Standard ASCII spaces
+from flask import Flask, jsonify, abort, request
+from api.v1.views import app_views
+import os
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
@@ -18,7 +18,10 @@ app.register_blueprint(app_views)
 auth = None
 AUTH_TYPE = os.getenv('AUTH_TYPE')
 
-if AUTH_TYPE == 'auth':
+if AUTH_TYPE == 'basic_auth':  # Check for basic_auth first
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
+elif AUTH_TYPE == 'auth':  # Fallback to general Auth if not basic_auth
     from api.v1.auth.auth import Auth
     auth = Auth()
 
@@ -40,7 +43,7 @@ def forbidden(error):
     Handler for 403 Forbidden errors.
     Returns a JSON response with status code 403.
     """
-    return jsonify({"error": "Forbidden"}), 403  # Corrected indentation
+    return jsonify({"error": "Forbidden"}), 403
 
 
 @app.errorhandler(404)
@@ -61,9 +64,9 @@ def handle_before_request():
     for authentication and authorization checks.
     """
     if auth is None:
-        return  # Corrected indentation
+        return
 
-    excluded_paths = [  # Corrected indentation
+    excluded_paths = [
         '/api/v1/status/',
         '/api/v1/unauthorized/',
         '/api/v1/forbidden/'
