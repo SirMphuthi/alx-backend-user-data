@@ -5,7 +5,7 @@ Basic Flask app module.
 This module sets up a simple Flask web application with routes for
 user registration and session management.
 """
-from flask import Flask, jsonify, request, abort, make_response
+from flask import Flask, jsonify, request, abort, make_response, redirect
 from auth import Auth
 
 app = Flask(__name__)
@@ -52,24 +52,40 @@ def sessions() -> tuple:
     email = request.form.get("email")
     password = request.form.get("password")
 
-    # Validate login credentials using the Auth class
     if not AUTH.valid_login(email, password):
-        # If login is incorrect, respond with 401 Unauthorized
         abort(401)
 
-    # If login is valid, create a new session for the user
     session_id = AUTH.create_session(email)
 
-    # Prepare the JSON response payload
     response_data = {"email": email, "message": "logged in"}
-
-    # Create a Flask response object to add the cookie
     response = make_response(jsonify(response_data))
-
-    # Set the session_id as a cookie on the response
     response.set_cookie("session_id", session_id)
 
     return response, 200
+
+
+@app.route("/sessions", methods=["DELETE"])
+def destroy_session_route() -> tuple:
+    """
+    DELETE /sessions
+
+    Handles user logout. Expects 'session_id' in cookies.
+    If user exists, destroys session and redirects to GET /.
+    Otherwise, responds with 403 Forbidden.
+    """
+    session_id = request.cookies.get("session_id")
+
+    # Find the user associated with the session_id
+    user = AUTH.get_user_from_session_id(session_id)
+
+    if user is None:
+        # If no user found for the session_id, respond with 403
+        abort(403)
+    else:
+        # If user exists, destroy their session
+        AUTH.destroy_session(user.id)
+        # Redirect to GET /
+        return redirect("/")
 
 
 if __name__ == "__main__":
