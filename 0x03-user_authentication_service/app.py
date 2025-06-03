@@ -3,7 +3,8 @@
 Basic Flask app module.
 
 This module sets up a simple Flask web application with routes for
-user registration, session management, and profile retrieval.
+user registration, session management, profile retrieval, and
+password reset token generation.
 """
 from flask import Flask, jsonify, request, abort, make_response, redirect
 from auth import Auth
@@ -101,6 +102,27 @@ def profile() -> tuple:
         abort(403)
     else:
         return jsonify({"email": user.email}), 200
+
+
+@app.route("/reset_password", methods=["POST"])
+def get_reset_password_token_route() -> tuple:
+    """
+    POST /reset_password
+
+    Handles password reset token generation. Expects 'email' form data.
+    If email is not registered, responds with 403 Forbidden.
+    Otherwise, generates a token and returns a JSON payload.
+    """
+    email = request.form.get("email")
+
+    try:
+        # Attempt to get a reset token for the given email
+        reset_token = AUTH.get_reset_password_token(email)
+        # If successful, return the email and the generated token
+        return jsonify({"email": email, "reset_token": reset_token}), 200
+    except ValueError:
+        # If ValueError is raised (meaning email not found), abort with 403
+        abort(403)
 
 
 if __name__ == "__main__":
