@@ -3,7 +3,7 @@
 Basic Flask app module.
 
 This module sets up a simple Flask web application with routes for
-user registration and session management.
+user registration, session management, and profile retrieval.
 """
 from flask import Flask, jsonify, request, abort, make_response, redirect
 from auth import Auth
@@ -75,17 +75,32 @@ def destroy_session_route() -> tuple:
     """
     session_id = request.cookies.get("session_id")
 
-    # Find the user associated with the session_id
     user = AUTH.get_user_from_session_id(session_id)
 
     if user is None:
-        # If no user found for the session_id, respond with 403
         abort(403)
     else:
-        # If user exists, destroy their session
         AUTH.destroy_session(user.id)
-        # Redirect to GET /
         return redirect("/")
+
+
+@app.route("/profile", methods=["GET"])
+def profile() -> tuple:
+    """
+    GET /profile
+
+    Retrieves user profile based on session ID cookie.
+    If user exists, returns JSON payload with email (200 OK).
+    If session ID is invalid or user not found, aborts with 403 Forbidden.
+    """
+    session_id = request.cookies.get("session_id")
+
+    user = AUTH.get_user_from_session_id(session_id)
+
+    if user is None:
+        abort(403)
+    else:
+        return jsonify({"email": user.email}), 200
 
 
 if __name__ == "__main__":
