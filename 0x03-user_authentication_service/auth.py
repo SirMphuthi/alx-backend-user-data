@@ -2,10 +2,10 @@
 """
 Authentication module.
 
-Manages user authentication: hashing, registration, login.
+Manages user authentication: hashing, registration, login, sessions.
 """
 import bcrypt
-import uuid  # Import the uuid module
+import uuid
 from db import DB
 from user import User
 from sqlalchemy.orm.exc import NoResultFound
@@ -93,3 +93,24 @@ class Auth:
                                   user.hashed_password)
         except NoResultFound:
             return False
+
+    def create_session(self, email: str) -> str:
+        """
+        Creates a new session for a user.
+
+        Finds user by email, generates new UUID (session ID), stores in DB.
+
+        Args:
+            email (str): Email of the user for whom to create a session.
+
+        Returns:
+            str: The newly generated session ID if the user is found,
+                 otherwise None.
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+            session_id = _generate_uuid()
+            self._db.update_user(user.id, session_id=session_id)
+            return session_id
+        except NoResultFound:
+            return None
