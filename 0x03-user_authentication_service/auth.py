@@ -9,7 +9,7 @@ import uuid
 from db import DB
 from user import User
 from sqlalchemy.orm.exc import NoResultFound
-from typing import Union  # Import Union for type hinting
+from typing import Union
 
 
 def _hash_password(password: str) -> bytes:
@@ -133,3 +133,18 @@ class Auth:
             return user
         except NoResultFound:
             return None
+
+    def destroy_session(self, user_id: int) -> None:
+        """
+        Destroys a user's session by setting their session ID to None.
+
+        Args:
+            user_id (int): The ID of the user whose session to destroy.
+        """
+        try:
+            # Update the user's session_id to None in the database
+            self._db.update_user(user_id, session_id=None)
+        except NoResultFound:
+            # If the user is not found, the method still returns None,
+            # so no explicit action is needed here.
+            pass
