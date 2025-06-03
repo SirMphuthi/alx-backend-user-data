@@ -165,11 +165,38 @@ class Auth:
         try:
             user = self._db.find_user_by(email=email)
         except NoResultFound:
-            # If user not found, raise a ValueError as required
             raise ValueError("Email not found")
 
-        # Generate a new UUID for the reset token
         reset_token = _generate_uuid()
-        # Update the user's reset_token in the database
         self._db.update_user(user.id, reset_token=reset_token)
         return reset_token
+
+    def update_password(self, reset_token: str, password: str) -> None:
+        """
+        Updates a user's password using a reset token.
+
+        Finds the user by reset token. If found, hashes the new password
+        and updates the user's hashed_password and clears the reset_token.
+
+        Args:
+            reset_token (str): The reset token associated with the user.
+            password (str): The new plain-text password.
+
+        Raises:
+            ValueError: If no user is found for the given reset token.
+        """
+        try:
+            user = self._db.find_user_by(reset_token=reset_token)
+        except NoResultFound:
+            # If user not found with the reset token, raise ValueError
+            raise ValueError("Invalid reset token")
+
+        # Hash the new password using the private helper function
+        new_hashed_password = _hash_password(password)
+
+        # Update the user's hashed_password and set reset_token to None
+        self._db.update_user(
+            user.id,
+            hashed_password=new_hashed_password,
+            reset_token=None
+        )
