@@ -11,6 +11,11 @@ from user import User
 from sqlalchemy.orm.exc import NoResultFound
 
 
+# >>> REMOVE THIS LINE IF IT'S IN YOUR AUTH.PY <<<
+# from auth import Auth
+# >>> REMOVE THIS LINE IF IT'S IN YOUR AUTH.PY <<<
+
+
 def _hash_password(password: str) -> bytes:
     """
     Hashes a password with bcrypt.
@@ -99,7 +104,7 @@ class Auth:
         Creates a new session for a user.
 
         Finds user by email, generates new UUID (session ID), stores in DB.
-
+        
         Args:
             email (str): Email of the user for whom to create a session.
 
