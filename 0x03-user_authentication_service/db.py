@@ -29,7 +29,7 @@ class DB:
         """
         Initialize a new DB instance.
 
-        Sets up the SQLAlchemy engine to connect to an in-memory SQLite DB
+        Sets up the SQLAlchemy engine to connect to an in-memory SQLite databse
         named 'a.db'. It drops any existing tables defined by Base metadata
         and then creates all necessary tables.
         """
